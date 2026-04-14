@@ -4,10 +4,35 @@ from reportlab.platypus import SimpleDocTemplate, Spacer, Table, TableStyle, Kee
 from reportlab.lib import colors
 from reportlab.lib.pagesizes import A4
 import re
+import base64
+
+st.set_page_config(layout="wide")
 
 st.title("📦 CANHOTOS FBF")
 
 uploaded_file = st.file_uploader("Envie o romaneio (PDF)", type="pdf")
+
+# ===== LOGO FIXO CANTO INFERIOR DIREITO (BASE64) =====
+def get_base64(file_path):
+    with open(file_path, "rb") as f:
+        return base64.b64encode(f.read()).decode()
+
+try:
+    logo_base64 = get_base64("logo.png")
+    st.markdown(f'''
+        <style>
+        .logo {{
+            position: fixed;
+            bottom: 15px;
+            right: 15px;
+            width: 110px;
+            opacity: 0.85;
+        }}
+        </style>
+        <img src="data:image/png;base64,{logo_base64}" class="logo">
+    ''', unsafe_allow_html=True)
+except:
+    pass
 
 def format_km(km):
     try:
@@ -51,10 +76,7 @@ def gerar_pdf(dados, header):
         tabela = Table(bloco, colWidths=[350, 200])
         tabela.setStyle(TableStyle([
             ("GRID", (0,0), (-1,-1), 0.5, colors.black),
-
-            # 🔥 LINHA CINZA NO CLIENTE + PEDIDO
             ("BACKGROUND", (0,0), (-1,0), cinza),
-
             ("FONTSIZE", (0,0), (-1,2), 12),
             ("FONTSIZE", (0,3), (1,3), 13),
         ]))
@@ -150,9 +172,10 @@ if uploaded_file is not None:
 
     if st.button("Gerar Canhoteira"):
         file_path = gerar_pdf(dados, header)
+        file_name = f"Canhoteira_{data.replace('/', '-')}_N_{numero}.pdf"
 
         with open(file_path, "rb") as f:
-            st.download_button("📥 Baixar Canhoteira", f, file_name="canhoteira.pdf")
+            st.download_button("📥 Baixar Canhoteira", f, file_name=file_name)
 
 else:
     st.info("Aguardando envio do romaneio...")
